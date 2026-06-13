@@ -1,5 +1,6 @@
 <div class="d-flex justify-content-between mb-3">
-    <h3>Daftar Surat</h3><a href="<?= base_url('surat/create') ?>" class="btn btn-primary">+ Unggah Surat Baru</a>
+    <h3>Daftar Surat</h3>
+    <a href="<?= base_url('surat/create') ?>" class="btn btn-primary">+ Unggah Surat Baru</a>
 </div>
 <?php if (session()->getFlashdata('error')): ?><div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div><?php endif; ?>
 <?php if (session()->getFlashdata('success')): ?><div class="alert alert-success"><?= session()->getFlashdata('success') ?></div><?php endif; ?>
