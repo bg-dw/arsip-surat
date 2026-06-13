@@ -1,0 +1,21 @@
+# Perbaikan hak akses (Apache 2.4 dan versi lama)
+<IfModule authz_core_module>
+    Require all granted
+</IfModule>
+<IfModule !authz_core_module>
+    Order allow,deny
+    Allow from all
+</IfModule>
+
+# Pengalihan URL (URL Rewriting)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Jika request adalah file atau direktori yang benar-benar ada, langsung buka (jangan dialihkan)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Mengalihkan sisa request lainnya ke index.php
+    RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+</IfModule>
