@@ -13,6 +13,7 @@ class Auth extends BaseController
     }
     public function loginAuth()
     {
+        helper('log');
         $model = new UserModel();
         $username = $this->request->getVar('username');
         $password = $this->request->getVar('password');
@@ -26,6 +27,7 @@ class Auth extends BaseController
                     'role' => $data['role'],
                     'logged_in' => TRUE
                 ]);
+                catat_log("User '" . $data['nama_lengkap'] . "' berhasil login ke sistem.");
                 return redirect()->to('/dashboard');
             }
         }
@@ -33,6 +35,9 @@ class Auth extends BaseController
     }
     public function logout()
     {
+        helper('log');
+        // CATAT LOG LOGOUT SEBELUM DESTROY SESSION
+        catat_log("User '" . session()->get('nama_lengkap') . "' melakukan logout.");
         session()->destroy();
         return redirect()->to('/login');
     }
