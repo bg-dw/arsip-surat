@@ -30,7 +30,7 @@ class Surat extends BaseController
         // Pengaturan Pagination
         $pager = \Config\Services::pager();
         $perPage = 10; // Menampilkan 10 surat per halaman
-        $page = $this->request->getVar('page') ? (int)$this->request->getVar('page') : 1;
+        $page = $this->request->getVar('page') ? (int) $this->request->getVar('page') : 1;
         $offset = ($page - 1) * $perPage;
 
         // Ambil data dari Model berdasarkan tahun yang sudah ditentukan default-nya
@@ -50,11 +50,11 @@ class Surat extends BaseController
         }
 
         $data = [
-            'title'         => 'Data Arsip Surat',
-            'surat'         => $dataSurat,
-            'daftar_tahun'  => $daftarTahun,
-            'tahun_aktif'   => $tahunDipilih,
-            'pager'         => $pager->makeLinks($page, $perPage, $totalSurat, 'default_full')
+            'title' => 'Data Arsip Surat',
+            'surat' => $dataSurat,
+            'daftar_tahun' => $daftarTahun,
+            'tahun_aktif' => $tahunDipilih,
+            'pager' => $pager->makeLinks($page, $perPage, $totalSurat, 'default_full')
         ];
 
         return view('layout/header', $data)
@@ -74,13 +74,15 @@ class Surat extends BaseController
     public function store()
     {
         // Validasi input form & file scan
-        if (!$this->validate([
-            'nomor_surat' => 'required|is_unique[tbl_surat.nomor_surat]',
-            'judul_surat' => 'required',
-            'tanggal_surat' => 'required',
-            'kategori_id' => 'required',
-            'file_scan' => 'uploaded[file_scan]|max_size[file_scan,5120]|ext_in[file_scan,pdf,jpg,jpeg,png]',
-        ])) {
+        if (
+            !$this->validate([
+                'nomor_surat' => 'required|is_unique[tbl_surat.nomor_surat]',
+                'judul_surat' => 'required',
+                'tanggal_surat' => 'required',
+                'kategori_id' => 'required',
+                'file_scan' => 'uploaded[file_scan]|max_size[file_scan,5120]|ext_in[file_scan,pdf,jpg,jpeg,png]',
+            ])
+        ) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
@@ -94,13 +96,14 @@ class Surat extends BaseController
         }
 
         $this->suratModel->save([
-            'nomor_surat'   => $this->request->getVar('nomor_surat'),
-            'judul_surat'   => $this->request->getVar('judul_surat'),
+            'nomor_surat' => $this->request->getVar('nomor_surat'),
+            'judul_surat' => $this->request->getVar('judul_surat'),
             'tanggal_surat' => $this->request->getVar('tanggal_surat'),
-            'kategori_id'   => $this->request->getVar('kategori_id'),
-            'user_id'       => session()->get('user_id'),
-            'file_path'     => $filePath,
-            'keterangan'    => $this->request->getVar('keterangan'),
+            'kategori_id' => $this->request->getVar('kategori_id'),
+            'user_id' => session()->get('user_id'),
+            'nama_user' => session()->get('name'),
+            'file_path' => $filePath,
+            'keterangan' => $this->request->getVar('keterangan'),
         ]);
         catat_log("Mengarsipkan surat baru dengan nomor: " . $this->request->getVar('nomor_surat'));
         return redirect()->to('/surat')->with('success', 'Surat berhasil diarsipkan.');

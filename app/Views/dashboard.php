@@ -35,7 +35,7 @@
                         <td><?= $s['nomor_surat']; ?></td>
                         <td><?= $s['judul_surat']; ?></td>
                         <td><span class="badge bg-info text-dark"><?= $s['nama_kategori']; ?></span></td>
-                        <td><?= date('d-m-Y H:i', strtotime($s['tanggal_upload'])); ?></td>
+                        <td><?= date('d-m-Y H:i', strtotime($s['created_at'])); ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>

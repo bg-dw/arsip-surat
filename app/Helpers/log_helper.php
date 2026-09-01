@@ -7,9 +7,10 @@ if (!function_exists('catat_log')) {
         $builder = $db->table('tbl_aktivitas_log');
 
         $data = [
-            'user_id'   => session()->get('user_id') ?? 1, // Jika belum login (saat seeder), default ke ID 1
+            'nama_user' => session()->get('name') ?? 'Unknown User', // Jika belum login (saat seeder), default ke ID 1
+            'user_id' => session()->get('user_id') ?? 1, // Jika belum login (saat seeder), default ke ID 1
             'aktivitas' => $aktivitas,
-            'waktu'     => date('Y-m-d H:i:s')
+            'waktu' => date('Y-m-d H:i:s')
         ];
 
         $builder->insert($data);

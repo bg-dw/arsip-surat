@@ -47,7 +47,8 @@
             <tbody>
                 <?php if (empty($surat)): ?>
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">Tidak ada berkas surat yang ditemukan untuk tahun ini.</td>
+                        <td colspan="6" class="text-center text-muted py-4">Tidak ada berkas surat yang ditemukan untuk
+                            tahun ini.</td>
                     </tr>
                 <?php endif; ?>
                 <?php foreach ($surat as $s): ?>
@@ -55,11 +56,15 @@
                         <td><b><?= $s['nomor_surat']; ?></b></td>
                         <td><?= $s['judul_surat']; ?></td>
                         <td class="text-center"><span class="badge bg-secondary"><?= $s['nama_kategori']; ?></span></td>
-                        <td class="text-center"><?= date('d/m/Y', strtotime($s['tanggal_surat'])); ?></td>
-                        <td><?= $s['nama_lengkap']; ?></td>
+                        <td class="text-center"><?= date('d/m/Y', strtotime($s['created_at'])); ?></td>
+                        <td><?= $s['nama_user']; ?></td>
                         <td class="text-center">
-                            <a href="<?= base_url('surat/download/' . $s['id']) ?>" class="btn btn-sm btn-success">Download</a>
-                            <a href="<?= base_url('surat/delete/' . $s['id']) ?>" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin?')">Hapus</a>
+                            <a href="<?= base_url('surat/download/' . $s['id']) ?>"
+                                class="btn btn-sm btn-success">Download</a>
+                            <?php if (session()->get('role') === 'admin'): ?>
+                                <a href="<?= base_url('surat/delete/' . $s['id']) ?>" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Apakah Anda yakin?')">Hapus</a>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>

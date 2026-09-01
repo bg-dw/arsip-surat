@@ -2,43 +2,120 @@
 
 namespace App\Controllers;
 
-use App\Models\UserModel;
+use CodeIgniter\Controller;
 
 class Auth extends BaseController
 {
-    public function index()
+    private $ssoServer;
+    private $clientId;
+    private $clientSecret;
+    private $redirectUri;
+
+    public function __construct()
     {
-        if (session()->get('logged_in')) return redirect()->to('/dashboard');
-        return view('auth/login');
+        helper('log'); // Mengaktifkan log helper
+        // Mengambil konfigurasi dari file .env (dengan fallback value)
+        $this->ssoServer = env('SSO_SERVER_URL', 'http://localhost:9600/sso/public/');
+        $this->clientId = env('SSO_CLIENT_ID', '4');
+        $this->clientSecret = env('SSO_CLIENT_SECRET', 'CTKTPpblFaeYQcYejwbqNqVcdN4tWYQuCVCzmXea');
     }
-    public function loginAuth()
+
+    private function getRedirectUri()
     {
-        helper('log');
-        $model = new UserModel();
-        $username = $this->request->getVar('username');
-        $password = $this->request->getVar('password');
-        $data = $model->where('username', $username)->first();
-        if ($data) {
-            if (password_verify($password, $data['password'])) { //password_verify bawaan php
-                session()->set([
-                    'user_id' => $data['id'],
-                    'username' => $data['username'],
-                    'nama_lengkap' => $data['nama_lengkap'],
-                    'role' => $data['role'],
-                    'logged_in' => TRUE
-                ]);
-                catat_log("User '" . $data['nama_lengkap'] . "' berhasil login ke sistem.");
-                return redirect()->to('/dashboard');
-            }
+        if ($this->redirectUri === null) {
+            $this->redirectUri = base_url('auth/ssoCallback');
         }
-        return redirect()->to('/login')->with('error', 'Username atau Password Salah.');
+
+        return $this->redirectUri;
     }
+
+    /**
+     * 1. Halaman/Method awal yang memicu login SSO
+     */
+    public function login()
+    {
+        $queryParams = http_build_query([
+            'client_id' => $this->clientId,
+            'redirect_uri' => $this->getRedirectUri(),
+            'response_type' => 'code',
+            'scope' => '',
+        ]);
+        dd($queryParams);
+
+        return redirect()->to($this->ssoServer . 'oauth/authorize?' . $queryParams);
+    }
+
+    /**
+     * 2. Callback penerima Authorization Code dari Laravel SSO
+     */
+    public function ssoCallback()
+    {
+        $code = $this->request->getGet('code');
+        if (!$code) {
+            return $this->login();
+        }
+        $client = \Config\Services::curlrequest();
+
+        try {
+            // Step A: Tukar Authorization Code dengan Access Token
+            $response = $client->post($this->ssoServer . 'oauth/token', [
+                'form_params' => [
+                    'grant_type' => 'authorization_code',
+                    'client_id' => $this->clientId,
+                    'client_secret' => $this->clientSecret,
+                    'redirect_uri' => $this->getRedirectUri(),
+                    'code' => $code,
+                ],
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+                'http_errors' => false,
+            ]);
+
+            $tokenData = json_decode($response->getBody(), true);
+
+            if (isset($tokenData['error'])) {
+                return die('Gagal mendapatkan token: ' . ($tokenData['message'] ?? $tokenData['error']));
+            }
+
+            $accessToken = $tokenData['access_token'];
+
+            // Step B: Ambil data User dari Server SSO menggunakan Access Token
+            $userResponse = $client->get($this->ssoServer . 'api/user', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Accept' => 'application/json',
+                ],
+                'http_errors' => false,
+            ]);
+
+            $userData = json_decode($userResponse->getBody(), true);
+            // Step C: Set Session Lokal CodeIgniter 4
+            session()->set([
+                'is_logged_in' => true,
+                'user_id' => $userData['sso_user_id'] ?? null,
+                'name' => $userData['name'] ?? null,
+                'user_name' => $userData['username'] ?? null,
+                'user_email' => $userData['email'] ?? null,
+                'user_type' => $userData['type'] ?? null,
+                'role' => $userData['role'] ?? null,
+                'sso_token' => $accessToken,
+            ]);
+
+            catat_log(($userData['name'] ?? null) . " Berhasil Login!");
+            // Step D: Redirect ke Dashboard Utama
+            return redirect()->to(base_url('/dashboard'));
+        } catch (\Exception $e) {
+            return die('Terjadi kesalahan SSO: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 3. Method Logout
+     */
     public function logout()
     {
-        helper('log');
-        // CATAT LOG LOGOUT SEBELUM DESTROY SESSION
-        catat_log("User '" . session()->get('nama_lengkap') . "' melakukan logout.");
         session()->destroy();
-        return redirect()->to('/login');
+        return redirect()->to($this->ssoServer . "dashboard");
     }
 }

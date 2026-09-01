@@ -22,7 +22,7 @@
                 <?php foreach ($logs as $l): ?>
                     <tr>
                         <td><small class="text-mono"><?= date('d M Y - H:i:s', strtotime($l['waktu'])); ?></small></td>
-                        <td><span class="badge bg-dark"><?= $l['nama_lengkap']; ?></span></td>
+                        <td><span class="badge bg-dark"><?= $l['nama_user']; ?></span></td>
                         <td><?= $l['aktivitas']; ?></td>
                     </tr>
                 <?php endforeach; ?>

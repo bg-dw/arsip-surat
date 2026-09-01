@@ -5,16 +5,29 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
+// $routes->get('/', 'Auth::index');
+// $routes->get('login', 'Auth::index');
+// $routes->post('login/auth', 'Auth::loginAuth');
+// $routes->get('logout', 'Auth::logout');
 
-$routes->get('/', 'Auth::index');
-$routes->get('login', 'Auth::index');
-$routes->post('login/auth', 'Auth::loginAuth');
-$routes->get('logout', 'Auth::logout');
+// ============================================================================
+// 1. RUTE PUBLIK (Bebas Akses / Tanpa Filter)
+// ============================================================================
+$routes->get('auth/login', 'Auth::login');
+$routes->get('auth/ssoCallback', 'Auth::ssoCallback'); // Wajib Publik!
+$routes->get('auth/logout', 'Auth::logout');
 
-$routes->group('', ['filter' => 'authFilter'], function ($routes) {
+
+// ============================================================================
+// 2. RUTE TERPROTEKSI (Wajib Login SSO)
+// ============================================================================
+$routes->group('', ['filter' => 'SsoAuthFilter'], function ($routes) {
+
+    // Dashboard
+    $routes->get('/', 'Dashboard::index');
     $routes->get('dashboard', 'Dashboard::index');
 
-    //CRUD Surat
+    // CRUD Surat
     $routes->get('surat', 'Surat::index');
     $routes->get('surat/create', 'Surat::create');
     $routes->post('surat/store', 'Surat::store');
@@ -29,6 +42,7 @@ $routes->group('', ['filter' => 'authFilter'], function ($routes) {
     $routes->post('kategori/update/(:num)', 'Kategori::update/$1');
     $routes->get('kategori/delete/(:num)', 'Kategori::delete/$1');
 
-    // Log Aktivitas (Hanya untuk melihat riwayat)
+    // Log Aktivitas
     $routes->get('log', 'Log::index');
+
 });

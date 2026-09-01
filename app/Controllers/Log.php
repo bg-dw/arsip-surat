@@ -10,8 +10,7 @@ class Log extends BaseController
     {
         $db = \Config\Database::connect();
         $builder = $db->table('tbl_aktivitas_log')
-            ->select('tbl_aktivitas_log.*, tbl_users.nama_lengkap')
-            ->join('tbl_users', 'tbl_users.id = tbl_aktivitas_log.user_id')
+            ->select('tbl_aktivitas_log.*')
             ->orderBy('waktu', 'DESC');
 
         // Menggunakan library pagination internal CI4
@@ -19,7 +18,7 @@ class Log extends BaseController
 
         // Batasi hanya 25 log per halaman
         $perPage = 25;
-        $page = $this->request->getVar('page') ? (int)$this->request->getVar('page') : 1;
+        $page = $this->request->getVar('page') ? (int) $this->request->getVar('page') : 1;
         $offset = ($page - 1) * $perPage;
 
         // Ambil data dengan LIMIT dan OFFSET
@@ -30,7 +29,7 @@ class Log extends BaseController
 
         $data = [
             'title' => 'Log Aktivitas Sistem',
-            'logs'  => $logs,
+            'logs' => $logs,
             'pager' => $pager->makeLinks($page, $perPage, $total, 'default_full')
         ];
 
