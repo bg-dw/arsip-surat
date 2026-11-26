@@ -14,10 +14,10 @@ class Auth extends BaseController
     public function __construct()
     {
         helper('log'); // Mengaktifkan log helper
-        // Mengambil konfigurasi dari file .env (dengan fallback value)
+        // Konfigurasi SSO dibaca dari .env saja - secret TIDAK BOLEH ditulis di kode.
         $this->ssoServer = env('SSO_SERVER_URL', 'http://localhost:9600/sso/public/');
         $this->clientId = env('SSO_CLIENT_ID', '4');
-        $this->clientSecret = env('SSO_CLIENT_SECRET', 'CTKTPpblFaeYQcYejwbqNqVcdN4tWYQuCVCzmXea');
+        $this->clientSecret = env('SSO_CLIENT_SECRET');
     }
 
     private function getRedirectUri()
@@ -30,10 +30,22 @@ class Auth extends BaseController
     }
 
     /**
+     * Secret client wajib ada di .env - tanpa itu login SSO gagal
+     * dengan pesan jelas, bukan diam-diam memakai nilai lain.
+     */
+    private function cekClientSecret()
+    {
+        if (empty($this->clientSecret)) {
+            die('SSO_CLIENT_SECRET belum diatur di .env - login SSO tidak bisa jalan tanpa secret client.');
+        }
+    }
+
+    /**
      * 1. Halaman/Method awal yang memicu login SSO
      */
     public function login()
     {
+        $this->cekClientSecret();
         $queryParams = http_build_query([
             'client_id' => $this->clientId,
             'redirect_uri' => $this->getRedirectUri(),
@@ -50,6 +62,7 @@ class Auth extends BaseController
      */
     public function ssoCallback()
     {
+        $this->cekClientSecret();
         $code = $this->request->getGet('code');
         if (!$code) {
             return $this->login();
